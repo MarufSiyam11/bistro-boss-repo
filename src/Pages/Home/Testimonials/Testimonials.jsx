@@ -1,13 +1,13 @@
 import SectionTitle from "../../../components/SectionTitle/SectionTitle";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
-// Import Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
 import { useEffect, useState } from "react";
 import { Rating } from "@smastrom/react-rating";
 import "@smastrom/react-rating/style.css";
-// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faQuoteLeft } from "@fortawesome/free-solid-svg-icons";
 
 const Testimonials = () => {
   const [reviews, setReviews] = useState([]);
@@ -16,7 +16,7 @@ const Testimonials = () => {
     fetch("/menu.json")
       .then((res) => res.json())
       .then((data) => setReviews(data));
-  });
+  }, []); // Only fetch once when the component mounts
 
   return (
     <section>
@@ -33,8 +33,7 @@ const Testimonials = () => {
                 value={review.rating}
                 readOnly
               />
-              <i className="fa-solid fa-quote-left"></i>
-              {/* <FontAwesomeIcon icon="fa-solid fa-quote-left" /> */}
+              <FontAwesomeIcon icon={faQuoteLeft} />
               <p className="py-8">{review.details}</p>
               <h3 className="text-2xl text-orange-500">{review.name}</h3>
             </div>
