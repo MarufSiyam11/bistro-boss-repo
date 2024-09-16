@@ -1,14 +1,45 @@
-import { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../../Providers/AuthPeovider";
+import { FaCartArrowDown } from "react-icons/fa";
+import { ImCross } from "react-icons/im";
+import img from "../../../assets/home/03.png";
+import { deleteAddToCard } from "../../../LocalStorage/LocalStroage";
+import { toast } from "react-toastify"; // Optional if you want to show notifications
 
 const Navbar = () => {
   const { user, logOut } = useContext(AuthContext);
+  const [showCart, setShowCart] = useState(false);
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    // Function to fetch data
+    const getStoredAddToCard = () => {
+      const storedAddToCard = localStorage.getItem("addTo-Crad");
+      if (storedAddToCard) {
+        const result = JSON.parse(storedAddToCard);
+        setData(result);
+      }
+    };
+    getStoredAddToCard();
+  }, []);
+
+  const handleDelete = (id) => {
+    deleteAddToCard(id); // Delete the item by id
+    setData(data.filter((item) => item.id !== id)); // Update state to remove item
+    toast.success("Donation item removed."); // Optional: show notification
+  };
+
+  const toggleCart = () => {
+    setShowCart(!showCart);
+  };
+
   const handleLogOut = () => {
     logOut()
       .then(() => {})
       .catch((error) => console.log(error));
   };
+
   const navOptions = (
     <>
       <li>
@@ -22,63 +53,114 @@ const Navbar = () => {
       </li>
     </>
   );
+
   return (
-    <div className="navbar fixed z-10 bg-opacity-30 max-w-screen-xl bg-black text-white">
-      <div className="navbar-start">
-        <div className="dropdown">
-          <label tabIndex={0} className="btn btn-ghost lg:hidden">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+    <>
+      <div className="navbar fixed z-10 bg-opacity-30 max-w-screen-xl bg-black text-white">
+        <div className="navbar-start">
+          <div className="dropdown">
+            <label tabIndex={0} className="btn btn-ghost lg:hidden">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h8m-8 6h16"
+                />
+              </svg>
+            </label>
+            <ul
+              tabIndex={0}
+              className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h8m-8 6h16"
-              />
-            </svg>
-          </label>
-          <ul
-            tabIndex={0}
-            className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
-          >
-            {navOptions}
-          </ul>
+              {navOptions}
+            </ul>
+          </div>
+          <a className="btn btn-ghost normal-case text-xl">BESTRO BOSS</a>
         </div>
-        <a className="btn btn-ghost normal-case text-xl">BESTRO BOSS</a>
-      </div>
-      <div className="navbar-center hidden lg:flex">
-        <ul className="menu menu-horizontal px-1">{navOptions}</ul>
-      </div>
-      {user ? (
-        <>
-          {/* Show Logout button when user is logged in */}
-          <button onClick={handleLogOut} className="btn btn-ghost">
-            LogOut
-          </button>
-          {/* Optionally show user's profile information */}
-          {/* <div className="flex items-center space-x-2">
-            <img
-              className="w-12 rounded-full h-12"
-              src={user?.photoURL}
-              alt="User"
-            />
-            <span>{user?.displayName}</span>
-          </div> */}
-        </>
-      ) : (
-        <div className="navbar-end">
-          {/* Show Login button when no user is logged in */}
-          <a href="/login" className="btn">
-            Login
-          </a>
+        <div className="navbar-center hidden lg:flex">
+          <ul className="menu menu-horizontal px-1">{navOptions}</ul>
         </div>
-      )}
-    </div>
+        {user ? (
+          <>
+            {/* Show Logout button when user is logged in */}
+            <button onClick={handleLogOut} className="btn btn-ghost">
+              LogOut
+            </button>
+            <button onClick={toggleCart} className="btn text-xl btn-ghost">
+              <FaCartArrowDown />
+            </button>
+          </>
+        ) : (
+          <div className="navbar-end">
+            {/* Show Login button when no user is logged in */}
+            <a href="/login" className="btn">
+              Login
+            </a>
+          </div>
+        )}
+
+        {showCart && (
+          <div className="w-[400px] flex items-start h-[100vh] bg-white flex-col absolute right-0 top-0">
+            <div className="flex justify-end w-[100%]">
+              <button
+                onClick={toggleCart}
+                className="btn text-black text-xl btn-ghost "
+              >
+                <ImCross />
+              </button>
+            </div>
+            <div className="max-w-md mx-auto w-full mt-16 bg-white rounded-lg overflow-hidden md:max-w-lg border border-gray-400">
+              <div className="px-4 py-2 border-b border-gray-200">
+                <h2 className="font-semibold text-gray-800">Shopping Cart</h2>
+              </div>
+
+              <div className="flex flex-col divide-y divide-gray-200">
+                {data.map((item) => (
+                  <div className="flex items-center py-4 px-6" key={item.id}>
+                    <img
+                      className="w-16 h-16 object-cover rounded"
+                      src={img}
+                      alt={item.name}
+                    />
+                    <div className="ml-3">
+                      <h3 className="text-gray-900 font-semibold">
+                        {item.name}
+                      </h3>
+                      <p className="text-gray-700 mt-1">${item.price}</p>
+                    </div>
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="ml-auto py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between px-6 py-3 bg-gray-100">
+                <h3 className="text-gray-900 font-semibold">
+                  Total: $
+                  {data
+                    .reduce((total, item) => total + item.price, 0)
+                    .toFixed(2)}
+                </h3>
+                <button className="py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">
+                  Checkout
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 
