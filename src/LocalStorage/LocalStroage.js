@@ -1,36 +1,65 @@
-import { toast } from "react-toastify";
+// LocalStorage.jsx
 
-const getStoredAddToCard = () => {
-  const storedAddToCard = localStorage.getItem("addTo-Crad");
-  if (storedAddToCard) {
-    return JSON.parse(storedAddToCard);
+// Utility to manage localStorage updates and notify listeners
+class LocalStorageManager {
+  constructor() {
+    this.listeners = [];
   }
-  return [];
-};
 
-const saveAddToCard = (menu) => {
-  const storedAddToCards = getStoredAddToCard();
-
-  // Correct comparison: comparing id values
-  const exists = storedAddToCards.find((item) => item.id === menu.id);
-
-  if (exists) {
-    return toast.error("You have already add this item.");
+  // Add a listener that will be called whenever localStorage is updated
+  subscribe(listener) {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter((l) => l !== listener);
+    };
   }
-  if (!exists) {
-    storedAddToCards.push(menu);
-    localStorage.setItem("addTo-Crad", JSON.stringify(storedAddToCards));
-    toast.success("Donation saved successfully!");
+
+  // Notify all listeners about the change
+  notifyListeners() {
+    const storedItems = this.getFromLocalStorage();
+    this.listeners.forEach((listener) => listener(storedItems));
   }
-};
-const deleteAddToCard = (id) => {
-  let storedAddToCards = getStoredAddToCard();
 
-  // Filter out the item with the given id
-  storedAddToCards = storedAddToCards.filter((item) => item.id !== id);
+  // Function to add or update product in local storage
+  addToLocalStorage2(product) {
+    const key = "add-to-product";
+    const storedItems = JSON.parse(localStorage.getItem(key)) || [];
 
-  // Update the local storage with the new filtered array
-  localStorage.setItem("addTo-Crad", JSON.stringify(storedAddToCards));
-};
+    const productIndex = storedItems.findIndex(
+      (item) => item._id === product.id
+    );
 
-export { getStoredAddToCard, saveAddToCard, deleteAddToCard };
+    if (productIndex !== -1) {
+      storedItems[productIndex].quantity += 1;
+    } else {
+      storedItems.push({ ...product, quantity: 1 });
+    }
+
+    localStorage.setItem(key, JSON.stringify(storedItems));
+    this.notifyListeners();
+  }
+
+  // Function to retrieve items from local storage
+  getFromLocalStorage() {
+    const key = "add-to-product";
+    return JSON.parse(localStorage.getItem(key)) || [];
+  }
+
+  // Function to remove an item from local storage by its ID
+  removeFromLocalStorage(productId) {
+    const key = "add-to-product";
+    let storedItems = JSON.parse(localStorage.getItem(key)) || [];
+
+    // Filter out the item with the specific productId
+    storedItems = storedItems.filter((item) => item._id !== productId);
+
+    // Update the local storage
+    localStorage.setItem(key, JSON.stringify(storedItems));
+
+    // Notify listeners or update the state
+    this.notifyListeners(); // If this function exists, it should update relevant states
+  }
+}
+
+// Create a global instance of LocalStorageManager
+export const localStorageManager = new LocalStorageManager();

@@ -4,8 +4,8 @@ import { AuthContext } from "../../../Providers/AuthPeovider";
 import { FaCartArrowDown } from "react-icons/fa";
 import { ImCross } from "react-icons/im";
 import img from "../../../assets/home/03.png";
-import { deleteAddToCard } from "../../../LocalStorage/LocalStroage";
-import { toast } from "react-toastify"; // Optional if you want to show notifications
+// Optional if you want to show notifications
+import { localStorageManager } from "../../../LocalStorage/LocalStroage";
 
 const Navbar = () => {
   const { user, logOut } = useContext(AuthContext);
@@ -13,21 +13,21 @@ const Navbar = () => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    // Function to fetch data
-    const getStoredAddToCard = () => {
-      const storedAddToCard = localStorage.getItem("addTo-Crad");
-      if (storedAddToCard) {
-        const result = JSON.parse(storedAddToCard);
-        setData(result);
-      }
-    };
-    getStoredAddToCard();
+    // Fetch initial cart items from local storage
+    setData(localStorageManager.getFromLocalStorage());
+
+    // Subscribe to localStorage updates
+    const unsubscribe = localStorageManager.subscribe((updatedItems) => {
+      setData(updatedItems);
+    });
+
+    // Cleanup the subscription when the component unmounts
+    return () => unsubscribe();
   }, []);
 
-  const handleDelete = (id) => {
-    deleteAddToCard(id); // Delete the item by id
-    setData(data.filter((item) => item.id !== id)); // Update state to remove item
-    toast.success("Donation item removed."); // Optional: show notification
+  // Function to handle removing a product
+  const handleRemoveProduct = (productId) => {
+    localStorageManager.removeFromLocalStorage(productId);
   };
 
   const toggleCart = () => {
@@ -93,8 +93,14 @@ const Navbar = () => {
             <button onClick={handleLogOut} className="btn btn-ghost">
               LogOut
             </button>
-            <button onClick={toggleCart} className="btn text-xl btn-ghost">
+            <button
+              onClick={toggleCart}
+              className="btn text-xl btn-ghost relative"
+            >
               <FaCartArrowDown />
+              <span className="w-[16px] absolute top-0 right-[5px] flex justify-center items-center text-[9px] h-[16px] bg-red-600 text-white rounded-full">
+                {data?.length}
+              </span>
             </button>
           </>
         ) : (
@@ -116,27 +122,30 @@ const Navbar = () => {
                 <ImCross />
               </button>
             </div>
-            <div className="max-w-md mx-auto w-full mt-16 bg-white rounded-lg overflow-hidden md:max-w-lg border border-gray-400">
+            <div className="max-w-md mx-auto w-full mt-2 bg-white rounded-lg overflow-hidden md:max-w-lg border border-gray-400">
               <div className="px-4 py-2 border-b border-gray-200">
                 <h2 className="font-semibold text-gray-800">Shopping Cart</h2>
               </div>
 
               <div className="flex flex-col divide-y divide-gray-200">
-                {data.map((item) => (
-                  <div className="flex items-center py-4 px-6" key={item.id}>
+                {data.map((item, index) => (
+                  <div
+                    className="flex items-center py-4 px-6"
+                    key={item?.id || index}
+                  >
                     <img
                       className="w-16 h-16 object-cover rounded"
                       src={img}
-                      alt={item.name}
+                      alt={item?.name}
                     />
                     <div className="ml-3">
                       <h3 className="text-gray-900 font-semibold">
-                        {item.name}
+                        {item?.name}
                       </h3>
-                      <p className="text-gray-700 mt-1">${item.price}</p>
+                      <p className="text-gray-700 mt-1">${item?.price}</p>
                     </div>
                     <button
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => handleRemoveProduct(item._id)}
                       className="ml-auto py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
                     >
                       Remove
