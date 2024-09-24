@@ -101,7 +101,12 @@ const Navbar = () => {
                 <h2 className="font-semibold text-gray-800">Shopping Cart</h2>
               </div>
 
-              <div className="flex flex-col divide-y divide-gray-200">
+              {/* Conditionally add the scrollbar for more than 3 items */}
+              <div
+                className={`flex flex-col divide-y divide-gray-200 ${
+                  data.length > 3 ? "overflow-y-auto max-h-[400px]" : ""
+                }`}
+              >
                 {data.map((item, index) => (
                   <div
                     className="flex items-center py-4 px-6"
@@ -128,6 +133,7 @@ const Navbar = () => {
                 ))}
               </div>
 
+              {/* Footer: Total and Checkout button */}
               <div className="flex items-center justify-between px-6 py-3 bg-gray-100">
                 <h3 className="text-gray-900 font-semibold">
                   Total: $

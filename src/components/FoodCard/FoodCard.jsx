@@ -1,9 +1,29 @@
 import { localStorageManager } from "../../LocalStorage/LocalStroage";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 const FoodCard = ({ item }) => {
   const { name, image, price, recipe } = item;
+
+  // Check if the product is already in the cart
   const handleAddProduct = (product) => {
-    localStorageManager.addToLocalStorage2(product);
+    const cartItems = localStorageManager.getFromLocalStorage("cart") || [];
+
+    // Check if the product already exists in the cart
+    const isAlreadyInCart = cartItems.find(
+      (cartItem) => cartItem.name === product.name
+    );
+
+    if (isAlreadyInCart) {
+      // Show a toast if the item is already in the cart
+      toast.warning("This item is already in the cart!");
+    } else {
+      // Add product to the cart if it's not in the cart
+      localStorageManager.addToLocalStorage2(product);
+      toast.success("Product added to cart successfully!");
+    }
   };
+
   return (
     <div className="card w-96 bg-base-100 shadow-xl">
       <figure>
@@ -20,7 +40,7 @@ const FoodCard = ({ item }) => {
             onClick={() => handleAddProduct(item)}
             className="btn btn-outline bg-slate-500 border-orange-400 border-0 border-b-4 mt-4 text-white uppercase"
           >
-            add to cart
+            Add to Cart
           </button>
         </div>
       </div>
