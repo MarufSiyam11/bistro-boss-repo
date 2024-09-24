@@ -1,6 +1,5 @@
-import { useContext, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { AuthContext } from "../../../Providers/AuthPeovider";
 import { FaCartArrowDown } from "react-icons/fa";
 import { ImCross } from "react-icons/im";
 import img from "../../../assets/home/03.png";
@@ -8,7 +7,6 @@ import img from "../../../assets/home/03.png";
 import { localStorageManager } from "../../../LocalStorage/LocalStroage";
 
 const Navbar = () => {
-  const { user, logOut } = useContext(AuthContext);
   const [showCart, setShowCart] = useState(false);
   const [data, setData] = useState([]);
 
@@ -32,12 +30,6 @@ const Navbar = () => {
 
   const toggleCart = () => {
     setShowCart(!showCart);
-  };
-
-  const handleLogOut = () => {
-    logOut()
-      .then(() => {})
-      .catch((error) => console.log(error));
   };
 
   const navOptions = (
@@ -87,30 +79,12 @@ const Navbar = () => {
         <div className="navbar-center hidden lg:flex">
           <ul className="menu menu-horizontal px-1">{navOptions}</ul>
         </div>
-        {user ? (
-          <>
-            {/* Show Logout button when user is logged in */}
-            <button onClick={handleLogOut} className="btn btn-ghost">
-              LogOut
-            </button>
-            <button
-              onClick={toggleCart}
-              className="btn text-xl btn-ghost relative"
-            >
-              <FaCartArrowDown />
-              <span className="w-[16px] absolute top-0 right-[5px] flex justify-center items-center text-[9px] h-[16px] bg-red-600 text-white rounded-full">
-                {data?.length}
-              </span>
-            </button>
-          </>
-        ) : (
-          <div className="navbar-end">
-            {/* Show Login button when no user is logged in */}
-            <a href="/login" className="btn">
-              Login
-            </a>
-          </div>
-        )}
+        <button onClick={toggleCart} className="btn text-xl btn-ghost relative">
+          <FaCartArrowDown />
+          <span className="w-[16px] absolute top-0 right-[5px] flex justify-center items-center text-[9px] h-[16px] bg-red-600 text-white rounded-full">
+            {data?.length}
+          </span>
+        </button>
 
         {showCart && (
           <div className="w-[400px] flex items-start h-[100vh] bg-white flex-col absolute right-0 top-0">
